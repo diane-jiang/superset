@@ -137,4 +137,81 @@ describe('sortNumberWithMixedTypes', () => {
 
     expect(result).toBeLessThan(0);
   });
+
+  test('should sort by the specified column, not always the first column', () => {
+    const createMultiColumnRow = (
+      metricAValue: number,
+      metricBValue: number,
+    ) => ({
+      values: {
+        columnA: {
+          props: {
+            valueField: 'metricA',
+            column: {
+              key: 'columnA',
+              colType: 'time',
+              bounds: undefined,
+            },
+            reversedEntries: [{ metricA: metricAValue }],
+          },
+        },
+        columnB: {
+          props: {
+            valueField: 'metricB',
+            column: {
+              key: 'columnB',
+              colType: 'time',
+              bounds: undefined,
+            },
+            reversedEntries: [{ metricB: metricBValue }],
+          },
+        },
+      },
+    });
+
+    // Row 1: metricA=10, metricB=30
+    // Row 2: metricA=20, metricB=5
+    const row1 = createMultiColumnRow(10, 30);
+    const row2 = createMultiColumnRow(20, 5);
+
+    // Sorting by columnA: row1(10) < row2(20) => negative
+    const resultA = sortNumberWithMixedTypes(row1, row2, 'columnA');
+    expect(resultA).toBeLessThan(0);
+
+    // Sorting by columnB: row1(30) > row2(5) => positive
+    const resultB = sortNumberWithMixedTypes(row1, row2, 'columnB');
+    expect(resultB).toBeGreaterThan(0);
+  });
+
+  test('should sort Sparkline cells using entries prop', () => {
+    const createSparklineRow = (metricValue: number) => ({
+      values: {
+        sparkColumn: {
+          props: {
+            valueField: 'metric',
+            column: {
+              key: 'sparkColumn',
+              colType: 'spark',
+              bounds: undefined,
+            },
+            entries: [{ metric: metricValue }],
+          },
+        },
+      },
+    });
+
+    const smaller = createSparklineRow(3);
+    const larger = createSparklineRow(9);
+
+    const result = sortNumberWithMixedTypes(smaller, larger, 'sparkColumn');
+    expect(result).toBeLessThan(0);
+  });
+
+  test('should return 0 when cell props are missing', () => {
+    const rowA = { values: { col: undefined } };
+    const rowB = { values: { col: undefined } };
+
+    const result = sortNumberWithMixedTypes(rowA, rowB, 'col');
+    expect(result).toBe(0);
+  });
 });

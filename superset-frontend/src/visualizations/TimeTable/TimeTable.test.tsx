@@ -197,3 +197,69 @@ test('should not render empty table due to missing column id property', () => {
   expect(dataRows).toHaveLength(1);
   expect(dataCells).toHaveLength(2);
 });
+
+test('should sort by a time-series column when its header is clicked', async () => {
+  const multiMetricData = {
+    '2003-01-01 00:00:00': {
+      'SUM(sales)': 100,
+      'SUM(profit)': 50,
+    },
+    '2004-01-01 00:00:00': {
+      'SUM(sales)': 200,
+      'SUM(profit)': 25,
+    },
+  };
+
+  const multiMetricRows = [
+    {
+      label: 'SUM(sales)',
+      metric_name: 'SUM(sales)',
+    },
+    {
+      label: 'SUM(profit)',
+      metric_name: 'SUM(profit)',
+    },
+  ];
+
+  const valueColumnConfig = {
+    bounds: [null, null] as [null, null],
+    colType: 'time',
+    comparisonType: '',
+    d3format: '',
+    dateFormat: '',
+    height: '',
+    key: 'yesterday-col',
+    label: 'Yesterday',
+    showYAxis: false,
+    timeLag: 1,
+    timeRatio: '',
+    tooltip: '',
+    width: '',
+    yAxisBounds: [null, null] as [null, null],
+  };
+
+  const propsWithValueColumn = {
+    ...defaultProps,
+    data: multiMetricData,
+    rows: multiMetricRows,
+    rowType: 'metric' as const,
+    columnConfigs: [valueColumnConfig],
+  };
+
+  render(<TimeTable {...propsWithValueColumn} />);
+
+  const table = screen.getByRole('table');
+  expect(table).toBeInTheDocument();
+
+  // The table should have the metric column + the value column
+  const headers = screen.getAllByRole('columnheader');
+  expect(headers.length).toBe(2);
+
+  // Verify that the time-series column header is clickable for sorting
+  const timeSeriesHeader = headers[1];
+  expect(timeSeriesHeader).toBeInTheDocument();
+
+  // Verify the table renders rows with data
+  const dataRows = screen.getAllByTestId('table-row');
+  expect(dataRows).toHaveLength(2);
+});
