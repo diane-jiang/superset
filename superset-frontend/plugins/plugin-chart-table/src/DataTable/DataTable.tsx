@@ -474,6 +474,13 @@ export default typedMemo(function DataTable<D extends object>({
       onServerPaginationChange(pageNumber, serverPageSize);
   }
 
+  if (resultPageCount > 0) {
+    resultCurrentPage = Math.min(
+      Math.max(0, resultCurrentPage),
+      resultPageCount - 1,
+    );
+  }
+
   // Emit filtered rows to parent in client-side mode (debounced via RAF)
   const isMountedRef = useRef(true);
   useEffect(() => {
