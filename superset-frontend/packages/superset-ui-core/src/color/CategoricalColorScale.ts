@@ -155,8 +155,8 @@ class CategoricalColorScale extends ExtensibleFunction {
       }
 
       if (
-        // feature flag to be deprecated (will become standard behaviour)
-        isFeatureEnabled(FeatureFlag.AvoidColorsCollision) &&
+        (isFeatureEnabled(FeatureFlag.AvoidColorsCollision) ||
+          source === LabelsColorMapSource.Dashboard) &&
         this.isColorUsed(color)
       ) {
         // fallback to least used color
@@ -165,7 +165,6 @@ class CategoricalColorScale extends ExtensibleFunction {
     }
 
     if (
-      isFeatureEnabled(FeatureFlag.AvoidColorsCollision) &&
       source === LabelsColorMapSource.Dashboard &&
       (forcedColor || isExistingLabel)
     ) {

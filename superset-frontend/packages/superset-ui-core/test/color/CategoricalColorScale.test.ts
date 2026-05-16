@@ -28,6 +28,7 @@ import {
 describe('CategoricalColorScale', () => {
   beforeEach(() => {
     window.featureFlags = {};
+    getLabelsColorMap().source = LabelsColorMapSource.Explore;
   });
 
   test('exists', () => {
@@ -551,7 +552,7 @@ describe('CategoricalColorScale', () => {
       labelsColorMap.reset();
     });
 
-    test('reproduces the bug without the fix: Classic Cars and Trains would both be red', () => {
+    test('avoids collision in dashboard mode even without AvoidColorsCollision flag', () => {
       window.featureFlags = {
         [FeatureFlag.AvoidColorsCollision]: false,
       };
@@ -571,7 +572,8 @@ describe('CategoricalColorScale', () => {
       const trainsColor = chartBScale.chartLabelsColorMap.get('Trains');
 
       expect(trainsColor).toBe('red');
-      expect(classicCarsColor).toBe('red');
+      expect(classicCarsColor).toBeDefined();
+      expect(classicCarsColor).not.toBe('red');
     });
 
     test('fix: Classic Cars is reassigned when Trains locks red from the dashboard', () => {
@@ -608,6 +610,44 @@ describe('CategoricalColorScale', () => {
       const uniqueColors = new Set(colors);
 
       expect(uniqueColors.size).toBe(colors.length);
+    });
+
+    test('load-order collision: two charts, overlapping labels, empty map_label_colors', () => {
+      window.featureFlags = {};
+
+      const PALETTE = ['red', 'blue', 'green'];
+
+      // Chart A loads first, assigns colors to its labels
+      const chartAScale = new CategoricalColorScale(PALETTE);
+      chartAScale.getColor('Trains', 201, 'testScheme');
+      chartAScale.getColor('Ships', 201, 'testScheme');
+
+      // Chart B loads second with overlapping label "Trains"
+      // Order 1: new label first, then shared label
+      const chartB1Scale = new CategoricalColorScale(PALETTE);
+      chartB1Scale.getColor('Classic Cars', 202, 'testScheme');
+      chartB1Scale.getColor('Trains', 202, 'testScheme');
+
+      const b1Colors = Array.from(chartB1Scale.chartLabelsColorMap.values());
+      expect(new Set(b1Colors).size).toBe(b1Colors.length);
+
+      // Reset for order 2
+      labelsColorMap.reset();
+      labelsColorMap.source = LabelsColorMapSource.Dashboard;
+
+      // Chart A loads first again
+      const chartAScale2 = new CategoricalColorScale(PALETTE);
+      chartAScale2.getColor('Trains', 301, 'testScheme');
+      chartAScale2.getColor('Ships', 301, 'testScheme');
+
+      // Chart B loads second with overlapping label "Trains"
+      // Order 2: shared label first, then new label
+      const chartB2Scale = new CategoricalColorScale(PALETTE);
+      chartB2Scale.getColor('Trains', 302, 'testScheme');
+      chartB2Scale.getColor('Classic Cars', 302, 'testScheme');
+
+      const b2Colors = Array.from(chartB2Scale.chartLabelsColorMap.values());
+      expect(new Set(b2Colors).size).toBe(b2Colors.length);
     });
 
     test('fix: increments analogous color range for dashboard collisions when UseAnalogousColors is enabled', () => {
