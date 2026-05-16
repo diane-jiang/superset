@@ -12290,8 +12290,8 @@ msgstr "Enviar"
 msgid "Subtitle"
 msgstr "Subtítulo"
 
-msgid "Subtotal"
-msgstr "Subtotal"
+msgid "Subvalue"
+msgstr "Subvalue"
 
 msgid "Success"
 msgstr "Realizado correctamente"
