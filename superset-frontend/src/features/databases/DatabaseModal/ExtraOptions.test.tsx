@@ -193,6 +193,83 @@ describe('ExtraOptions Component', () => {
     expect(onExtraInputChange).toHaveBeenCalled();
   });
 
+  test('shows validation error for negative schema cache timeout', () => {
+    renderComponent();
+    const performanceHeader = screen.getByText(t('Performance'));
+    fireEvent.click(performanceHeader);
+    const input = screen.getByTestId('schema-cache-timeout-test');
+    fireEvent.change(input, { target: { value: '-1' } });
+    expect(
+      screen.getByText('Schema cache timeout must be a positive integer (≥ 1)'),
+    ).toBeInTheDocument();
+    expect(onExtraInputChange).toHaveBeenCalled();
+  });
+
+  test('shows validation error for zero schema cache timeout', () => {
+    renderComponent();
+    const performanceHeader = screen.getByText(t('Performance'));
+    fireEvent.click(performanceHeader);
+    const input = screen.getByTestId('schema-cache-timeout-test');
+    fireEvent.change(input, { target: { value: '0' } });
+    expect(
+      screen.getByText('Schema cache timeout must be a positive integer (≥ 1)'),
+    ).toBeInTheDocument();
+  });
+
+  test('clears validation error when valid schema cache timeout is entered', () => {
+    renderComponent();
+    const performanceHeader = screen.getByText(t('Performance'));
+    fireEvent.click(performanceHeader);
+    const input = screen.getByTestId('schema-cache-timeout-test');
+    fireEvent.change(input, { target: { value: '-1' } });
+    expect(
+      screen.getByText('Schema cache timeout must be a positive integer (≥ 1)'),
+    ).toBeInTheDocument();
+    fireEvent.change(input, { target: { value: '300' } });
+    expect(
+      screen.queryByText(
+        'Schema cache timeout must be a positive integer (≥ 1)',
+      ),
+    ).not.toBeInTheDocument();
+  });
+
+  test('shows validation error for negative table cache timeout', () => {
+    renderComponent();
+    const performanceHeader = screen.getByText(t('Performance'));
+    fireEvent.click(performanceHeader);
+    const input = screen.getByTestId('table-cache-timeout-test');
+    fireEvent.change(input, { target: { value: '-5' } });
+    expect(
+      screen.getByText('Table cache timeout must be a positive integer (≥ 1)'),
+    ).toBeInTheDocument();
+    expect(onExtraInputChange).toHaveBeenCalled();
+  });
+
+  test('shows validation error for zero table cache timeout', () => {
+    renderComponent();
+    const performanceHeader = screen.getByText(t('Performance'));
+    fireEvent.click(performanceHeader);
+    const input = screen.getByTestId('table-cache-timeout-test');
+    fireEvent.change(input, { target: { value: '0' } });
+    expect(
+      screen.getByText('Table cache timeout must be a positive integer (≥ 1)'),
+    ).toBeInTheDocument();
+  });
+
+  test('accepts valid positive value for schema cache timeout without error', () => {
+    renderComponent();
+    const performanceHeader = screen.getByText(t('Performance'));
+    fireEvent.click(performanceHeader);
+    const input = screen.getByTestId('schema-cache-timeout-test');
+    fireEvent.change(input, { target: { value: '60' } });
+    expect(
+      screen.queryByText(
+        'Schema cache timeout must be a positive integer (≥ 1)',
+      ),
+    ).not.toBeInTheDocument();
+    expect(onExtraInputChange).toHaveBeenCalled();
+  });
+
   test('renders the collaps tab correctly and resets to default tab after closing', () => {
     const { rerender } = renderComponent();
     const sqlLabTab = screen.getByRole('tab', {

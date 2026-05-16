@@ -117,6 +117,8 @@ const ExtraOptions = ({
   const [activeKey, setActiveKey] = useState<string[] | undefined>();
 
   const [schemasText, setSchemasText] = useState<string>('');
+  const [schemaCacheError, setSchemaCacheError] = useState<string>('');
+  const [tableCacheError, setTableCacheError] = useState<string>('');
   useEffect(() => {
     if (!db) return;
     const initialSchemas = (
@@ -368,15 +370,32 @@ const ExtraOptions = ({
                   <Input
                     type="number"
                     name="schema_cache_timeout"
+                    min={1}
                     value={
                       extraJson?.metadata_cache_timeout?.schema_cache_timeout ||
                       ''
                     }
                     placeholder={t('Enter duration in seconds')}
-                    onChange={onExtraInputChange}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                      const val = e.target.value;
+                      if (val !== '' && Number(val) < 1) {
+                        setSchemaCacheError(
+                          t('Schema cache timeout must be a positive integer (≥ 1)'),
+                        );
+                      } else {
+                        setSchemaCacheError('');
+                      }
+                      onExtraInputChange(e);
+                    }}
                     data-test="schema-cache-timeout-test"
+                    status={schemaCacheError ? 'error' : undefined}
                   />
                 </div>
+                {schemaCacheError && (
+                  <div className="helper" style={{ color: theme.colorError }}>
+                    {schemaCacheError}
+                  </div>
+                )}
                 <div className="helper">
                   {t(
                     'Duration (in seconds) of the metadata caching timeout for schemas of ' +
@@ -390,15 +409,32 @@ const ExtraOptions = ({
                   <Input
                     type="number"
                     name="table_cache_timeout"
+                    min={1}
                     value={
                       extraJson?.metadata_cache_timeout?.table_cache_timeout ||
                       ''
                     }
                     placeholder={t('Enter duration in seconds')}
-                    onChange={onExtraInputChange}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                      const val = e.target.value;
+                      if (val !== '' && Number(val) < 1) {
+                        setTableCacheError(
+                          t('Table cache timeout must be a positive integer (≥ 1)'),
+                        );
+                      } else {
+                        setTableCacheError('');
+                      }
+                      onExtraInputChange(e);
+                    }}
                     data-test="table-cache-timeout-test"
+                    status={tableCacheError ? 'error' : undefined}
                   />
                 </div>
+                {tableCacheError && (
+                  <div className="helper" style={{ color: theme.colorError }}>
+                    {tableCacheError}
+                  </div>
+                )}
                 <div className="helper">
                   {t(
                     'Duration (in seconds) of the metadata caching timeout for tables of ' +
